@@ -41,6 +41,7 @@ class LocalDomainRecord(object):# pylint: disable=too-few-public-methods
         self.domainname = config.get_option_value(section, "domain")
         self.rr = self.subdomain = config.get_option_value(section, "sub_domain")
         self.type = config.get_option_value(section, "type", default="A")
+        self.line = config.get_option_value(section, "line", default="default")
         self.interface = config.get_option_value(section, "interface", default="eno1")
 
         if not self.domainname:
@@ -115,7 +116,7 @@ class DDNSDomainRecordManager(object):
         """
         for local_record in self.local_record_list:
             if all(getattr(local_record, attr) == getattr(remote_record, attr)
-                   for attr in ('domainname', 'rr', 'type')):
+                   for attr in ('domainname', 'rr', 'type', 'line')):
                 return local_record
 
         return None
@@ -133,11 +134,11 @@ class DDNSDomainRecordManager(object):
                                                                    rr_keyword=local_record.rr,
                                                                    type_keyword=local_record.type)
         if not fuzzy_matched_list:
-            DDNSUtils.err("Failed to fetch remote DomainRecords.")
+            DDNSUtils.err("Failed to fetch remote DomainRecords. Try to add it.")
             return None
 
         exact_matched_list = []
-        check_keys = ('DomainName', 'RR', 'Type')
+        check_keys = ('DomainName', 'RR', 'Type', 'Line')
         for rec in fuzzy_matched_list:
             if all(rec.get(key, None) == getattr(local_record, key.lower()) for key in check_keys):
                 exact_matched_list.append(rec)
@@ -157,7 +158,22 @@ class DDNSDomainRecordManager(object):
 
         return remote_record
 
-    def update(self, remote_record, current_public_ip,record_type='A'):
+    def add(self, remote_record, current_public_ip, record_type='A', line='default'):
+        """
+        Add RemoteDomainRecord 's value to current public IP on Aliyun server
+
+        :param  RemoteDomainRecord:
+        :param  current public IP
+        :return: True or False
+        """
+        return self.resolver.add_domain_record(remote_record.domainname,
+                                               rr=remote_record.rr,
+                                               record_value=current_public_ip,
+                                               record_type=record_type,
+                                               line=line
+                                               )
+
+    def update(self, remote_record, current_public_ip, record_type='A', line='default'):
         """
         Update RemoteDomainRecord 's value to current public IP on Aliyun server
 
@@ -168,5 +184,6 @@ class DDNSDomainRecordManager(object):
         return self.resolver.update_domain_record(remote_record.recordid,
                                                   rr=remote_record.rr,
                                                   record_value=current_public_ip,
-                                                  record_type=record_type
+                                                  record_type=record_type,
+                                                  line=line
                                                   )

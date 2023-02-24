@@ -56,8 +56,15 @@ def main():
         # 3. current public IP is changed
         remote_record = record_manager.fetch_remote_record(local_record)
         if not remote_record:
-            DDNSUtils.err("Failed finding remote DomainRecord" \
-                          "[{rec.subdomain}.{rec.domainname}]".format(rec=local_record))
+            # DDNSUtils.err("Failed finding remote DomainRecord" \
+            #               "[{rec.subdomain}.{rec.domainname}]".format(rec=local_record))
+            add_result = record_manager.add(local_record, current_ip, local_record.type, local_record.line)
+            if not add_result:
+                DDNSUtils.err("Failed adding DomainRecord" \
+                              "[{rec.subdomain}.{rec.domainname}]".format(rec=local_record))
+            else:
+                DDNSUtils.info("Successfully adding DomainRecord" \
+                               "[{rec.subdomain}.{rec.domainname}]".format(rec=local_record))
             continue
 
         if current_ip == remote_record.value:
@@ -66,7 +73,7 @@ def main():
             continue
 
         # if we can fetch remote record and record's value doesn't equal to public IP
-        sync_result = record_manager.update(remote_record, current_ip,local_record.type)
+        sync_result = record_manager.update(remote_record, current_ip, local_record.type, local_record.line)
         
         if not sync_result:
             DDNSUtils.err("Failed updating DomainRecord" \

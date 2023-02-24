@@ -215,6 +215,73 @@ class YunResolver(object):
             print("Server side problem: {0}".format(ret.status_code))
             if self.debug:
                 print("Error in updateDomainRecord(), " \
+                      "params: {0},\nhttp response: {1}" \
+                      .format(params, ret.content))
+            return False
+
+        return True
+
+    def add_domain_record(self, domain_name, rr="www", record_type="A", record_value="192.168.0.1",
+                          ttl=None, priority=None, line=None):
+        """
+        Add remote domain record to Aliyun server
+
+        :param domain_name:   domain name
+        :param rr:            sub domain
+        :param record_type:   record type
+        :param record_value:  record value
+        :param ttl:           TTL
+        :param priority:      priority
+        :param line:          resolve line
+
+        :return: True if succeed, of False if failed
+        """
+        http_method = "GET"
+        params = {
+            'Action': "AddDomainRecord",
+            'DomainName': domain_name,
+            'RR': rr,
+            'Type': record_type,
+            'Value': record_value,
+        }
+
+        optional_params = {}
+        if ttl:
+            valid_ttl_list = [1, 5, 10, 60, 120, 600, 1800, 3600, 43200, 86400]
+            if ttl not in valid_ttl_list:
+                print("Invalid TTL, it need to be one of them: %s" % valid_ttl_list)
+                return False
+            optional_params['TTL'] = ttl
+
+        if priority:
+            valid_priorities = range(1, 11)
+            if priority not in valid_priorities:
+                print("Invalid priority, it need to be one of them: %s" % valid_priorities)
+            optional_params['Priority'] = priority
+
+        if line:
+            valid_lines = ['default', 'telecom', 'unicom',
+                           'mobile', 'oversea', 'edu',
+                           'google', 'baidu', 'biying']
+            if line not in valid_lines:
+                print("Invalid line, it need to be one of them: %s" % valid_lines)
+                return False
+            optional_params['Line'] = line
+
+        params.update(optional_params)
+        # add signature
+        params.update({"Signature": self.get_signature(http_method, params)})
+
+        # do real http action
+        try:
+            ret = requests.get(self.url, params=params)
+        except requests.RequestException as ex:
+            raise ex
+
+        if ret.status_code != requests.codes.ok:
+            print("Server side problem: {0}".format(ret.status_code))
+            if self.debug:
+                print("Error in updateDomainRecord(), " \
                        "params: {0},\nhttp response: {1}" \
                        .format(params, ret.content))
             return False

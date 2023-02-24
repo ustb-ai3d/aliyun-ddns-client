@@ -3,11 +3,10 @@
 Python DDNS client for Aliyun(http://www.hdget.com/aliyun-ddns-client)
 
 ### LIMITATION
-This version of DDNS client only supports auto updating 'A' type DomainRecord with IPV4 address.
+This version of DDNS client supports auto adding and updating 'A'/'AAAA' type DomainRecord with IPV4/IPV6 address.
 
 Other types are not supported because they need following value format other than IP address:
 - 'NS', 'MX', 'CNAME' types DomainRecord need domain name format value
-- 'AAAA' type DomainRecord need IPV6 address format value
 - 'SRV' type DomainRecord need name.protocal format value
 - 'Explicit URL' and 'Implicit  URL' need URL format value
 
@@ -87,8 +86,6 @@ interface=eth0
 4. Enable the features you want to use.
 5. Make sure "ddns.conf" can be readable for the user who setup cron job
 
-NOTICE:
-Only domain records both defined in local config file and Aliyun server will be updated
 
 ### FAQ
 

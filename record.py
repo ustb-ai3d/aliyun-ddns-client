@@ -134,7 +134,7 @@ class DDNSDomainRecordManager(object):
                                                                    rr_keyword=local_record.rr,
                                                                    type_keyword=local_record.type)
         if not fuzzy_matched_list:
-            DDNSUtils.err("Failed to fetch remote DomainRecords. Try to add it.")
+            DDNSUtils.info("Failed to fetch remote DomainRecords. Try to add it.")
             return None
 
         exact_matched_list = []
